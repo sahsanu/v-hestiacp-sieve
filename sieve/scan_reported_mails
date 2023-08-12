@@ -59,6 +59,29 @@ for dir in "${SPOOL_DIR}" "${SPOOL_LEARN_SPAM_DIR}" "${SPOOL_LEARN_HAM_DIR}"; do
     chmod 0775 ${dir}
 done
 
+# Check dupe messages on both directories (ham and spam) and delete all the duplicated messages but the last one.
+# Sometimes I mark a message as spam but after that I realize it is ham instead of spam so I mark the message as not spam
+# (and viceversa) and then, both messages will be checked, one for spam and the other for ham, so to avoid issues,
+# I prefer to learn only from the last marked message.
+
+find "$SPOOL_DIR/{ham,spam}" -type f | xargs md5sum | sort -k1,1 | uniq -Dw32 \
+   | while read hash file; do
+     if [ "${prev_hash}" == "${hash}" ]; then
+         if [ "${prev_file}" -ot "${file}" ]; then
+             rm "${prev_file}"
+             prev_hash="${hash}";
+             prev_file="${file}";
+          else
+             rm "${file}"
+             prev_hash="${prev_hash}";
+             prev_file="${prev_file}";
+          fi
+      else
+        prev_hash="${hash}";
+        prev_file="${file}";
+     fi
+    done
+
 # If there're a lot files, direct `mv` command may fail with error like
 # `argument list too long`, so we need `find` in this case.
 if [[ X"${KERNEL_NAME}" == X'OPENBSD' ]] || [[ X"${KERNEL_NAME}" == X'FREEBSD' ]]; then
