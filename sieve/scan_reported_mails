@@ -64,7 +64,7 @@ done
 # (and viceversa) and then, both messages will be checked, one for spam and the other for ham, so to avoid issues,
 # I prefer to learn only from the last marked message.
 
-find "$SPOOL_DIR/{ham,spam}" -type f | xargs md5sum | sort -k1,1 | uniq -Dw32 \
+find "$SPOOL_DIR"/{ham,spam} -type f | xargs md5sum | sort -k1,1 | uniq -Dw32 \
    | while read hash file; do
      if [ "${prev_hash}" == "${hash}" ]; then
          if [ "${prev_file}" -ot "${file}" ]; then
