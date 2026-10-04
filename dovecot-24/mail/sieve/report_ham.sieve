@@ -4,7 +4,8 @@ if environment :matches "imap.mailbox" "*" {
     set "mailbox" "${1}";
 }
 
-if environment :matches "imap.mailbox" "Trash" {
+# Moving out of Spam into a trash/junk folder is deleting, not "not spam"
+if environment :is "imap.mailbox" ["Trash", "Deleted Messages", "Deleted Items", "Junk", "Spam"] {
     stop;
 }
 
