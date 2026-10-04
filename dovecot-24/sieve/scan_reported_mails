@@ -41,8 +41,8 @@ export SPOOL_LEARN_SPAM_DIR="${SPOOL_DIR}/processing/spam"
 export SPOOL_LEARN_HAM_DIR="${SPOOL_DIR}/processing/ham"
 
 if [ -e ${LOCK_FILE} ]; then
-    find $(dirname ${LOCK_FILE}) -maxdepth 1 -ctime 1 "$(basename ${LOCK_FILE})" >/dev/null 2>&1
-    if [ X"$?" == X'0' ]; then
+    # Stale lock (older than 24h, e.g. after a crash): remove it and continue
+    if [ -n "$(find "$(dirname ${LOCK_FILE})" -maxdepth 1 -name "$(basename ${LOCK_FILE})" -mmin +1440 2>/dev/null)" ]; then
         rm -f ${LOCK_FILE} >/dev/null 2>&1
     else
         ${LOG} "Lock file exists (${LOCK_FILE}), abort."
@@ -64,7 +64,8 @@ done
 # (and viceversa) and then, both messages will be checked, one for spam and the other for ham, so to avoid issues,
 # I prefer to learn only from the last marked message.
 
-find "$SPOOL_DIR"/{ham,spam} -type f | xargs md5sum | sort -k1,1 | uniq -Dw32 \
+# Long options: works with GNU coreutils and uutils coreutils (Ubuntu 25.10+ default)
+find "$SPOOL_DIR"/{ham,spam} -type f -print0 | xargs -0 -r md5sum | sort -k1,1 | uniq --all-repeated --check-chars=32 \
    | while read hash file; do
      if [ "${prev_hash}" == "${hash}" ]; then
          if [ "${prev_file}" -ot "${file}" ]; then

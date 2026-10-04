@@ -37,3 +37,18 @@ git clone https://github.com/sahsanu/v-hestiacp-sieve.git
 cd v-hestiacp-sieve 
 sudo bash install_spamham.sh
 
+```
+
+## Upgrading to Dovecot 2.4 (e.g. Ubuntu 24.04 → 26.04, Debian 12 → 13)
+
+The installer selects the Dovecot 2.3 or 2.4 configuration at install time. After a
+release upgrade that brings Dovecot 2.4, the old 2.3 `20-spamham.conf` stays in place
+and Dovecot refuses to start (`mail_attribute_dict: Unknown setting`). Re-run the
+installer; it migrates the configuration (a backup of the old file is kept as
+`20-spamham.conf.dovecot23.bak`):
+
+```bash
+cd /usr/local/src/v-hestiacp-sieve
+git pull
+sudo bash install_spamham.sh
+```
